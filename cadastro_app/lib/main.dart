@@ -14,6 +14,14 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('pt', 'BR'),
+      ],
       home: CadastroScreen(),
     );
   }
@@ -31,6 +39,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
   @override
   void initState() {
     super.initState();
+    // Lista inicia vazia
   }
 
   void _addNewCard() {
@@ -522,6 +531,7 @@ class _FormCardState extends State<FormCard> {
             
             Spacer(),
             
+            // Espaço para melhor layout
             SizedBox(height: 10),
           ],
         ),
