@@ -1,310 +1,420 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cadastro App',
+      title: 'Cadastro de Usuários',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        primarySwatch: Colors.deepPurple,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 8,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
       ),
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: [
-        Locale('pt', 'BR'),
-      ],
-      home: CadastroScreen(),
+      home: const FormCarouselPage(),
     );
   }
 }
 
-class CadastroScreen extends StatefulWidget {
+class FormCarouselPage extends StatefulWidget {
+  const FormCarouselPage({super.key});
+
   @override
-  _CadastroScreenState createState() => _CadastroScreenState();
+  State<FormCarouselPage> createState() => _FormCarouselPageState();
 }
 
-class _CadastroScreenState extends State<CadastroScreen> {
-  List<FormData> formList = [];
-  PageController _pageController = PageController();
+class _FormCarouselPageState extends State<FormCarouselPage> {
+  final List<FormData> forms = List.generate(3, (_) => FormData());
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
 
   @override
-  void initState() {
-    super.initState();
-    // Lista inicia vazia
-  }
-
-  void _addNewCard() {
-    setState(() {
-      formList.add(FormData());
-    });
-    
-    // Navega para o novo card criado
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (formList.isNotEmpty) {
-        _pageController.animateToPage(
-          formList.length - 1,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-  }
-
-  void _removeCard(int index) {
-    if (formList.length > 1) {
-      setState(() {
-        formList.removeAt(index);
-      });
-    }
-  }
-
-  void _clearAllData() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirmar Limpeza'),
-        content: Text('Tem certeza que deseja remover todos os cadastros?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                formList.clear();
-              });
-              Navigator.pop(context);
-            },
-            child: Text('Confirmar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text('Cadastro de Pessoas'),
-        backgroundColor: Colors.blue[600],
+        title: const Text(
+          "Cadastro de Usuários",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          Expanded(
-            child: formList.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person_add,
-                          size: 80,
-                          color: Colors.blue[300],
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          'Nenhum cadastro encontrado',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Clique em "Adicionar Card" para começar',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : PageView.builder(
-                    controller: _pageController,
-                    itemCount: formList.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: FormCard(
-                          formData: formList[index],
-                          onRemove: () => _removeCard(index),
-                          canRemove: formList.length > 1,
-                        ),
-                      );
-                    },
-                  ),
-          ),
+          // Indicador de progresso
           Container(
-              padding: EdgeInsets.all(16.0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Se a largura for menor que 600px, empilha os botões verticalmente
-                  bool isSmallScreen = constraints.maxWidth < 600;
-                  
-                  if (isSmallScreen) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton.icon(
-                            onPressed: _addNewCard,
-                            icon: Icon(Icons.add, size: 20),
-                            label: Text('Adicionar Card', style: TextStyle(fontSize: 16)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (formList.isNotEmpty) ...[
-                          SizedBox(height: 12),
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                _showAllData();
-                              },
-                              icon: Icon(Icons.list, size: 20),
-                              label: Text('Ver Dados', style: TextStyle(fontSize: 16)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: _clearAllData,
-                              icon: Icon(Icons.clear_all, size: 20),
-                              label: Text('Limpar Tudo', style: TextStyle(fontSize: 16)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ]
-                      ],
-                    );
-                  } else {
-                    // Layout horizontal para telas maiores
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: _addNewCard,
-                              icon: Icon(Icons.add, size: 20),
-                              label: Text('Adicionar Card', style: TextStyle(fontSize: 16)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (formList.isNotEmpty) ...[
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  _showAllData();
-                                },
-                                icon: Icon(Icons.list, size: 20),
-                                label: Text('Ver Dados', style: TextStyle(fontSize: 16)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: _clearAllData,
-                                icon: Icon(Icons.clear_all, size: 20),
-                                label: Text('Limpar Tudo', style: TextStyle(fontSize: 16)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ]
-                      ],
-                    );
-                  }
-                },
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                forms.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: index == _currentIndex
+                        ? Colors.deepPurple
+                        : Colors.grey[300],
+                  ),
+                ),
               ),
             ),
+          ),
+          // Formulários
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemCount: forms.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 40 : 16,
+                    vertical: 16,
+                  ),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: _buildFormCard(forms[index], index),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Botões de navegação
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text("Anterior"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[600],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                Text(
+                  "${_currentIndex + 1} de ${forms.length}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _currentIndex < forms.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : () => _showSummary(),
+                  icon: Icon(_currentIndex < forms.length - 1
+                      ? Icons.arrow_forward
+                      : Icons.check),
+                  label: Text(_currentIndex < forms.length - 1
+                      ? "Próximo"
+                      : "Finalizar"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void _showAllData() {
+  Widget _buildFormCard(FormData formData, int index) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Título do formulário
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.person_add,
+                  color: Colors.deepPurple,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Usuário ${index + 1}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Nome Completo
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Nome Completo *',
+              prefixIcon: const Icon(Icons.person),
+              hintText: 'Digite o nome completo',
+              errorText: formData.nome != null && formData.nome!.trim().isEmpty
+                  ? 'Nome é obrigatório'
+                  : null,
+            ),
+            initialValue: formData.nome,
+            textCapitalization: TextCapitalization.words,
+            onChanged: (value) {
+              setState(() {
+                formData.nome = value;
+              });
+            },
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Nome é obrigatório';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // Data de Nascimento
+          InkWell(
+            onTap: () async {
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: formData.dataNascimento ?? DateTime(2000, 1, 1),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: Colors.deepPurple,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) {
+                setState(() => formData.dataNascimento = picked);
+              }
+            },
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: "Data de Nascimento *",
+                prefixIcon: Icon(Icons.calendar_today),
+                hintText: "Selecione uma data",
+              ),
+              child: Text(
+                formData.dataNascimento != null
+                    ? "${formData.dataNascimento!.day.toString().padLeft(2, '0')}/${formData.dataNascimento!.month.toString().padLeft(2, '0')}/${formData.dataNascimento!.year}"
+                    : "Selecione uma data",
+                style: TextStyle(
+                  color: formData.dataNascimento == null
+                      ? Colors.grey[600]
+                      : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Sexo (Dropdown)
+          DropdownButtonFormField<String>(
+            decoration: const InputDecoration(
+              labelText: "Sexo *",
+              prefixIcon: Icon(Icons.wc),
+            ),
+            value: formData.sexo,
+            items: const [
+              DropdownMenuItem(value: "Masculino", child: Text("Masculino")),
+              DropdownMenuItem(value: "Feminino", child: Text("Feminino"))          ],
+            onChanged: (value) => setState(() => formData.sexo = value),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Sexo é obrigatório';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // Status de preenchimento
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _isFormComplete(formData)
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _isFormComplete(formData)
+                    ? Colors.green
+                    : Colors.orange,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _isFormComplete(formData)
+                      ? Icons.check_circle
+                      : Icons.warning,
+                  color: _isFormComplete(formData)
+                      ? Colors.green
+                      : Colors.orange,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _isFormComplete(formData)
+                        ? 'Formulário completo!'
+                        : 'Preencha os campos obrigatórios (*)',
+                    style: TextStyle(
+                      color: _isFormComplete(formData)
+                          ? Colors.green[700]
+                          : Colors.orange[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _isFormComplete(FormData formData) {
+    return formData.nome != null &&
+        formData.nome!.trim().isNotEmpty &&
+        formData.email != null &&
+        formData.email!.trim().isNotEmpty &&
+        _isValidEmail(formData.email!) &&
+        formData.dataNascimento != null &&
+        formData.sexo != null &&
+        formData.sexo!.isNotEmpty;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  void _showSummary() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Dados Cadastrados'),
-        content: Container(
+        title: const Row(
+          children: [
+            Icon(Icons.summarize, color: Colors.deepPurple),
+            SizedBox(width: 8),
+            Text('Resumo dos Cadastros'),
+          ],
+        ),
+        content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: formList.length,
+            itemCount: forms.length,
             itemBuilder: (context, index) {
-              final data = formList[index];
+              final form = forms[index];
+              final isComplete = _isFormComplete(form);
+              
               return Card(
+                margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  title: Text(data.nomeCompleto.isEmpty ? 'Nome não informado' : data.nomeCompleto),
+                  leading: CircleAvatar(
+                    backgroundColor: isComplete ? Colors.green : Colors.orange,
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  title: Text(
+                    form.nome?.isNotEmpty == true ? form.nome! : 'Nome não informado',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Data: ${data.dataNascimento != null ? '${data.dataNascimento!.day}/${data.dataNascimento!.month}/${data.dataNascimento!.year}' : 'Não informada'}'),
-                      Text('Sexo: ${data.sexo}'),
+                      if (form.email?.isNotEmpty == true)
+                        Text('Email: ${form.email}'),
+                      if (form.telefone?.isNotEmpty == true)
+                        Text('Telefone: ${form.telefone}'),
+                      if (form.dataNascimento != null)
+                        Text('Nascimento: ${form.dataNascimento!.day.toString().padLeft(2, '0')}/${form.dataNascimento!.month.toString().padLeft(2, '0')}/${form.dataNascimento!.year}'),
+                      if (form.sexo?.isNotEmpty == true)
+                        Text('Sexo: ${form.sexo}'),
                     ],
+                  ),
+                  trailing: Icon(
+                    isComplete ? Icons.check_circle : Icons.warning,
+                    color: isComplete ? Colors.green : Colors.orange,
                   ),
                 ),
               );
@@ -313,229 +423,81 @@ class _CadastroScreenState extends State<CadastroScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Fechar'),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _saveData();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Salvar Dados'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _saveData() {
+    // Aqui você pode implementar a lógica para salvar os dados
+    // Por exemplo, enviar para uma API ou salvar localmente
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Dados salvos com sucesso!'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
 }
 
 class FormData {
-  String nomeCompleto = '';
+  String? nome;
+  String? email;
+  String? telefone;
   DateTime? dataNascimento;
-  String sexo = 'Homem';
-}
+  String? sexo;
 
-class FormCard extends StatefulWidget {
-  final FormData formData;
-  final VoidCallback onRemove;
-  final bool canRemove;
-
-  FormCard({
-    required this.formData,
-    required this.onRemove,
-    required this.canRemove,
+  FormData({
+    this.nome,
+    this.email,
+    this.telefone,
+    this.dataNascimento,
+    this.sexo,
   });
-
-  @override
-  _FormCardState createState() => _FormCardState();
 }
 
-class _FormCardState extends State<FormCard> {
-  late TextEditingController _nomeController;
-  late TextEditingController _dataController;
-
+class _PhoneInputFormatter extends TextInputFormatter {
   @override
-  void initState() {
-    super.initState();
-    _nomeController = TextEditingController(text: widget.formData.nomeCompleto);
-    _dataController = TextEditingController(
-      text: widget.formData.dataNascimento != null
-          ? '${widget.formData.dataNascimento!.day.toString().padLeft(2, '0')}/${widget.formData.dataNascimento!.month.toString().padLeft(2, '0')}/${widget.formData.dataNascimento!.year}'
-          : '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _dataController.dispose();
-    super.dispose();
-  }
-
-  void _selectDate() async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: widget.formData.dataNascimento ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      locale: Locale('pt', 'BR'),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        widget.formData.dataNascimento = pickedDate;
-        _dataController.text = '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
-      });
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    
+    if (text.length <= 2) {
+      return newValue;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue[50]!,
-              Colors.blue[100]!,
-            ],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Formulário de Cadastro',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[800],
-                  ),
-                ),
-                if (widget.canRemove)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: IconButton(
-                      onPressed: widget.onRemove,
-                      icon: Icon(Icons.delete, color: Colors.red[600], size: 22),
-                      tooltip: 'Remover card',
-                      padding: EdgeInsets.all(8),
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: 20),
-            
-            // Campo Nome Completo
-            Text(
-              'Nome Completo',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue[700],
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _nomeController,
-              decoration: InputDecoration(
-                hintText: 'Digite o nome completo',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: Icon(Icons.person, color: Colors.blue[600]),
-              ),
-              onChanged: (value) {
-                widget.formData.nomeCompleto = value;
-              },
-            ),
-            SizedBox(height: 20),
-            
-            // Campo Data de Nascimento
-            Text(
-              'Data de Nascimento',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue[700],
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _dataController,
-              decoration: InputDecoration(
-                hintText: 'DD/MM/AAAA',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: Icon(Icons.calendar_today, color: Colors.blue[600]),
-                suffixIcon: IconButton(
-                  onPressed: _selectDate,
-                  icon: Icon(Icons.date_range, color: Colors.blue[600]),
-                ),
-              ),
-              readOnly: true,
-              onTap: _selectDate,
-            ),
-            SizedBox(height: 20),
-            
-            // Campo Sexo
-            Text(
-              'Sexo',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue[700],
-              ),
-            ),
-            SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[400]!),
-                color: Colors.white,
-              ),
-              child: DropdownButtonFormField<String>(
-                value: widget.formData.sexo,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  prefixIcon: Icon(Icons.wc, color: Colors.blue[600]),
-                ),
-                items: ['Homem', 'Mulher'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      widget.formData.sexo = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
-            
-            Spacer(),
-            
-            // Espaço para melhor layout
-            SizedBox(height: 10),
-          ],
-        ),
-      ),
+    
+    String formatted = '';
+    
+    if (text.length <= 2) {
+      formatted = text;
+    } else if (text.length <= 6) {
+      formatted = '(${text.substring(0, 2)}) ${text.substring(2)}';
+    } else if (text.length <= 10) {
+      formatted = '(${text.substring(0, 2)}) ${text.substring(2, 6)}-${text.substring(6)}';
+    } else {
+      formatted = '(${text.substring(0, 2)}) ${text.substring(2, 7)}-${text.substring(7, 11)}';
+    }
+    
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
