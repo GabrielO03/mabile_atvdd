@@ -14,15 +14,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: [
-        Locale('pt', 'BR'),
-        Locale('en', 'US'),
-      ],
       home: CadastroScreen(),
     );
   }
@@ -40,7 +31,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
   @override
   void initState() {
     super.initState();
-    // Lista inicia vazia
   }
 
   void _addNewCard() {
@@ -150,46 +140,134 @@ class _CadastroScreenState extends State<CadastroScreen> {
           ),
           Container(
               padding: EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _addNewCard,
-                    icon: Icon(Icons.add),
-                    label: Text('Adicionar Card'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                  ),
-                  if (formList.isNotEmpty) ...[
-                     SizedBox(width: 10),
-                     ElevatedButton.icon(
-                       onPressed: () {
-                         _showAllData();
-                       },
-                       icon: Icon(Icons.list),
-                       label: Text('Ver Dados'),
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: Colors.blue,
-                         foregroundColor: Colors.white,
-                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                       ),
-                     ),
-                     SizedBox(width: 10),
-                     ElevatedButton.icon(
-                       onPressed: _clearAllData,
-                       icon: Icon(Icons.clear_all),
-                       label: Text('Limpar Tudo'),
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: Colors.red,
-                         foregroundColor: Colors.white,
-                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                       ),
-                     ),
-                   ]
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Se a largura for menor que 600px, empilha os botões verticalmente
+                  bool isSmallScreen = constraints.maxWidth < 600;
+                  
+                  if (isSmallScreen) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: _addNewCard,
+                            icon: Icon(Icons.add, size: 20),
+                            label: Text('Adicionar Card', style: TextStyle(fontSize: 16)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (formList.isNotEmpty) ...[
+                          SizedBox(height: 12),
+                          SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                _showAllData();
+                              },
+                              icon: Icon(Icons.list, size: 20),
+                              label: Text('Ver Dados', style: TextStyle(fontSize: 16)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: _clearAllData,
+                              icon: Icon(Icons.clear_all, size: 20),
+                              label: Text('Limpar Tudo', style: TextStyle(fontSize: 16)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]
+                      ],
+                    );
+                  } else {
+                    // Layout horizontal para telas maiores
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: _addNewCard,
+                              icon: Icon(Icons.add, size: 20),
+                              label: Text('Adicionar Card', style: TextStyle(fontSize: 16)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (formList.isNotEmpty) ...[
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  _showAllData();
+                                },
+                                icon: Icon(Icons.list, size: 20),
+                                label: Text('Ver Dados', style: TextStyle(fontSize: 16)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                onPressed: _clearAllData,
+                                icon: Icon(Icons.clear_all, size: 20),
+                                label: Text('Limpar Tudo', style: TextStyle(fontSize: 16)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]
+                      ],
+                    );
+                  }
+                },
               ),
             ),
         ],
@@ -330,10 +408,17 @@ class _FormCardState extends State<FormCard> {
                   ),
                 ),
                 if (widget.canRemove)
-                  IconButton(
-                    onPressed: widget.onRemove,
-                    icon: Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'Remover card',
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      onPressed: widget.onRemove,
+                      icon: Icon(Icons.delete, color: Colors.red[600], size: 22),
+                      tooltip: 'Remover card',
+                      padding: EdgeInsets.all(8),
+                    ),
                   ),
               ],
             ),
@@ -437,7 +522,6 @@ class _FormCardState extends State<FormCard> {
             
             Spacer(),
             
-            // Espaço para melhor layout
             SizedBox(height: 10),
           ],
         ),
